@@ -1,6 +1,6 @@
 # S3InputPlugin Plugin for Graylog
 
-[![Build Status](https://travis-ci.org/https://github.com/sherzberg/graylog-plugin-s3.svg?branch=master)](https://travis-ci.org/https://github.com/sherzberg/graylog-plugin-s3)
+[![Build Status](https://travis-ci.org/sherzberg/graylog-plugin-s3.svg?branch=master)](https://travis-ci.org/sherzberg/graylog-plugin-s3)
 
 This plugin provides an input plugin for AWS S3 files. It reads [S3 Events via SQS](http://docs.aws.amazon.com/AmazonS3/latest/dev/NotificationHowTo.html) from your AWS account to then pull in the S3 files into Graylog for processing.
 
