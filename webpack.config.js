@@ -1,0 +1,13 @@
+const PluginWebpackConfig = require('graylog-web-plugin').PluginWebpackConfig;
+const loadBuildConfig = require('graylog-web-plugin').loadBuildConfig;
+const path = require('path');
+
+// Remember to use the same name here and in `getUniqueId()` in the java MetaData class
+module.exports = new PluginWebpackConfig('graylog-plugin-s3.S3InputPluginPlugin', loadBuildConfig(path.resolve(__dirname, './build.config')), {
+    loaders: [
+        { test: /\.ts$/, loader: 'babel-loader!ts-loader', exclude: /node_modules|\.node_cache/ },
+    ],
+    resolve: {
+        extensions: ['.ts'],
+    },
+});
