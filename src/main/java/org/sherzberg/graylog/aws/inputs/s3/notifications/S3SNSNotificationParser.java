@@ -35,7 +35,7 @@ public class S3SNSNotificationParser {
             notifications.addAll(s3EventNotification.getRecords().stream().map(record -> new S3SNSNotification(
                     message.getReceiptHandle(),
                     record.getS3().getBucket().getName(),
-                    record.getS3().getObject().getKey()
+                    record.getS3().getObject().getUrlDecodedKey()
             )).collect(Collectors.toList()));
         } catch (Exception e) {
             LOG.error("Could not parse SNS notification: " + message.getBody(), e);
