@@ -4,7 +4,12 @@
 
 This plugin provides an input plugin for AWS S3 files. It reads [S3 Events via SQS](http://docs.aws.amazon.com/AmazonS3/latest/dev/NotificationHowTo.html) from your AWS account to then pull in the S3 files into Graylog for processing.
 
-**Required Graylog version:** 2.0 and later
+**Required Graylog version:** See below version table:
+
+|graylog version|s3 plugin version|
+|---|---|
+|< 2.3.0|< 2.3.0|
+|2.3.x|2.3.x|
 
 ## Installation
 
