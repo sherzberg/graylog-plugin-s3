@@ -1,5 +1,6 @@
 package org.sherzberg.graylog.aws.inputs.s3;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.inject.assistedinject.Assisted;
 import com.google.inject.assistedinject.AssistedInject;
 import org.graylog2.plugin.Message;
@@ -10,6 +11,7 @@ import org.graylog2.plugin.inputs.annotations.FactoryClass;
 import org.graylog2.plugin.inputs.codecs.Codec;
 import org.graylog2.plugin.inputs.codecs.CodecAggregator;
 import org.graylog2.plugin.journal.RawMessage;
+import org.sherzberg.graylog.aws.json.S3Record;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -19,18 +21,24 @@ public class S3Codec implements Codec {
 
     private final Configuration configuration;
 
+    private final ObjectMapper objectMapper;
+
     @AssistedInject
-    public S3Codec(@Assisted Configuration configuration) {
+    public S3Codec(@Assisted Configuration configuration, ObjectMapper objectMapper) {
         this.configuration = configuration;
+        this.objectMapper = objectMapper;
     }
 
     @Nullable
     @Override
     public Message decode(@Nonnull RawMessage rawMessage) {
         try {
-            final String logLine = new String(rawMessage.getPayload());
+            S3Record s3Record = objectMapper.readValue(rawMessage.getPayload(), S3Record.class);
 
-            return new Message(logLine, "s3", rawMessage.getTimestamp());
+            Message message = new Message(s3Record.log, "s3", rawMessage.getTimestamp());
+            message.addFields(s3Record.getFields());
+
+            return message;
         } catch (Exception e) {
             throw new RuntimeException("Could not deserialize S3 record.", e);
         }

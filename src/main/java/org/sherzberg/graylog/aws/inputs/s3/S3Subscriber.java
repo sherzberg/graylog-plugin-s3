@@ -1,17 +1,20 @@
 package org.sherzberg.graylog.aws.inputs.s3;
 
 import com.amazonaws.regions.Region;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.util.concurrent.Uninterruptibles;
 import org.graylog2.plugin.inputs.MessageInput;
 import org.graylog2.plugin.journal.RawMessage;
 import org.sherzberg.graylog.aws.inputs.s3.notifications.S3SNSNotification;
 import org.sherzberg.graylog.aws.inputs.s3.notifications.S3SQSClient;
+import org.sherzberg.graylog.aws.json.S3Record;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
@@ -62,6 +65,8 @@ public class S3Subscriber extends Thread {
     private class Processor implements Runnable {
         @Override
         public void run() {
+            final ObjectMapper objectMapper = new ObjectMapper();
+
             while (!stopped) {
                 while (!stopped) {
                     if (paused) {
@@ -108,7 +113,14 @@ public class S3Subscriber extends Thread {
 
                             String message;
                             while ((message = reader.readLine()) != null) {
-                                sourceInput.processRawMessage(new RawMessage(message.getBytes()));
+                                S3Record s3Record = new S3Record();
+                                s3Record.s3Bucket = n.getS3Bucket();
+                                s3Record.s3ObjectKey = n.getS3ObjectKey();
+                                s3Record.log = new String(message.getBytes(), StandardCharsets.UTF_8);
+
+                                RawMessage rawMessage = new RawMessage(objectMapper.writeValueAsBytes(s3Record));
+
+                                sourceInput.processRawMessage(rawMessage);
                             }
 
                             stream.close();
