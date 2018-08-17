@@ -64,12 +64,18 @@ public class S3Transport extends ThrottleableTransport {
         // Not supported.
     }
 
+    // for testing
+    public void setSubscriber(S3Subscriber subscriber) {
+        this.subscriber = subscriber;
+    }
+
     @Subscribe
     public void lifecycleStateChange(Lifecycle lifecycle) {
         LOG.info("Lifecycle changed to {}", lifecycle);
         switch (lifecycle) {
             case PAUSED:
             case FAILED:
+            case THROTTLED:
             case HALTING:
                 if (subscriber != null) {
                     subscriber.pause();
