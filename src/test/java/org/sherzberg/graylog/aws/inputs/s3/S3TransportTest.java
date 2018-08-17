@@ -38,6 +38,7 @@ public class S3TransportTest {
         s3Transport.lifecycleStateChange(lifecycle);
 
         verify(mockSubscriber, times(1)).pause();
+        verify(mockSubscriber, never()).unpause();
     }
 
 }
