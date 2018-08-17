@@ -8,8 +8,11 @@ This plugin provides an input plugin for AWS S3 files. It reads [S3 Events via S
 
 |graylog version|s3 plugin version|
 |---|---|
+|< 2.4.0|< 2.4.0|
 |< 2.3.0|< 2.3.0|
 |2.3.x|2.3.x|
+
+_NOTE_: older versions of this plugin may work with newer versions of Graylog, we just do not make any promises.
 
 ## Installation
 
