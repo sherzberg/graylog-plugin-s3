@@ -9,6 +9,7 @@ import com.amazonaws.services.sqs.AmazonSQS;
 import com.amazonaws.services.sqs.AmazonSQSClient;
 import com.amazonaws.services.sqs.model.*;
 import com.google.common.collect.Lists;
+import org.apache.commons.collections4.ListUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,8 +19,9 @@ import java.util.UUID;
 
 public class S3SQSClient {
     private static final Logger LOG = LoggerFactory.getLogger(S3SQSClient.class);
+    public static final int MAX_SQS_DELETE_SIZE = 10;
 
-    private final AmazonSQS sqs;
+    private AmazonSQS sqs;
     private final String queueName;
 
     public S3SQSClient(Region region, String queueName, String accessKey, String secretKey) {
@@ -36,6 +38,10 @@ public class S3SQSClient {
         this.sqs.setRegion(region);
 
         this.queueName = queueName;
+    }
+
+    public void setAmazonSqs(AmazonSQS sqs) {
+        this.sqs = sqs;
     }
 
     public List<S3SNSNotification> getNotifications() {
@@ -61,12 +67,20 @@ public class S3SQSClient {
     public void deleteNotifications(List<S3SNSNotification> notifications) {
         LOG.debug("Deleting " + notifications.size() + " notifications in batch request");
         List<DeleteMessageBatchRequestEntry> deleteMessageBatchRequestEntries = new ArrayList<>();
+
         for (S3SNSNotification n : notifications) {
             deleteMessageBatchRequestEntries.add(new DeleteMessageBatchRequestEntry(UUID.randomUUID().toString(), n.getReceiptHandle()));
         }
-        DeleteMessageBatchRequest request = new DeleteMessageBatchRequest(queueName);
-        request.withEntries(deleteMessageBatchRequestEntries);
-        sqs.deleteMessageBatch(request);
+
+        List<List<DeleteMessageBatchRequestEntry>> partition = ListUtils.partition(deleteMessageBatchRequestEntries, MAX_SQS_DELETE_SIZE);
+
+        for (List<DeleteMessageBatchRequestEntry> deleteMessagesBatchRequest: partition) {
+            DeleteMessageBatchRequest request = new DeleteMessageBatchRequest(queueName);
+            request.withEntries(deleteMessagesBatchRequest);
+            sqs.deleteMessageBatch(request);
+        }
+
+        LOG.debug("Deleted " + notifications.size() + " notifications in " + partition.size() + "delete request(s)");
     }
 
 }
