@@ -98,7 +98,7 @@ public class S3Subscriber extends Thread {
                     LOG.debug("Processing " + notifications.size() + " S3 notifications in SQS");
                     for (S3SNSNotification n : notifications) {
                         try {
-                            LOG.info("Reading messages from S3 file " + n.getS3Bucket() + "/" + n.getS3ObjectKey());
+                            LOG.debug("Reading messages from S3 file " + n.getS3Bucket() + "/" + n.getS3ObjectKey());
 
                             InputStream stream;
 
