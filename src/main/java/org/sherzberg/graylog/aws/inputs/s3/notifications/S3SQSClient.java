@@ -80,7 +80,7 @@ public class S3SQSClient {
             sqs.deleteMessageBatch(request);
         }
 
-        LOG.debug("Deleted " + notifications.size() + " notifications in " + partition.size() + "delete request(s)");
+        LOG.debug("Deleted " + notifications.size() + " notifications in " + partition.size() + " delete request(s)");
     }
 
 }
