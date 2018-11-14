@@ -1,8 +1,11 @@
 package org.sherzberg.graylog.aws.inputs.s3;
 
 import com.amazonaws.regions.Region;
+import com.codahale.metrics.Histogram;
+import com.codahale.metrics.Timer;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.util.concurrent.Uninterruptibles;
+import org.graylog2.plugin.LocalMetricRegistry;
 import org.graylog2.plugin.inputs.MessageInput;
 import org.graylog2.plugin.journal.RawMessage;
 import org.sherzberg.graylog.aws.inputs.s3.notifications.S3SNSNotification;
@@ -35,8 +38,10 @@ public class S3Subscriber extends Thread {
 
     private final S3SQSClient subscriber;
     private final S3Reader s3Reader;
+    private final LocalMetricRegistry metricRegistry;
+    private final Histogram linesPerFileHistogram;
 
-    public S3Subscriber(Region sqsRegion, Region s3Region, String queueName, MessageInput sourceInput, String accessKey, String secretKey, int threadCount) {
+    public S3Subscriber(Region sqsRegion, Region s3Region, String queueName, MessageInput sourceInput, String accessKey, String secretKey, int threadCount, LocalMetricRegistry metricRegistry) {
         this.sourceInput = sourceInput;
 
         this.subscriber = new S3SQSClient(
@@ -48,7 +53,10 @@ public class S3Subscriber extends Thread {
 
         this.s3Reader = new S3Reader(s3Region, accessKey, secretKey);
         this.threadCount = threadCount;
+        this.metricRegistry = metricRegistry;
         this.executor = new ScheduledThreadPoolExecutor(threadCount, Executors.defaultThreadFactory());
+
+        this.linesPerFileHistogram = metricRegistry.histogram("lines-per-file");
     }
 
     public void pause() {
@@ -111,6 +119,7 @@ public class S3Subscriber extends Thread {
 
                             BufferedReader reader = new BufferedReader(new InputStreamReader(stream));
 
+                            long currentLinesPerFile = 0;
                             String message;
                             while ((message = reader.readLine()) != null) {
                                 S3Record s3Record = new S3Record();
@@ -121,7 +130,9 @@ public class S3Subscriber extends Thread {
                                 RawMessage rawMessage = new RawMessage(objectMapper.writeValueAsBytes(s3Record));
 
                                 sourceInput.processRawMessage(rawMessage);
+                                currentLinesPerFile ++;
                             }
+                            linesPerFileHistogram.update(currentLinesPerFile);
 
                             stream.close();
 

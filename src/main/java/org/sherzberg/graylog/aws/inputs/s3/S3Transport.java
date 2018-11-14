@@ -106,7 +106,8 @@ public class S3Transport extends ThrottleableTransport {
                 input,
                 input.getConfiguration().getString(CK_ACCESS_KEY),
                 input.getConfiguration().getString(CK_SECRET_KEY),
-                input.getConfiguration().getInt(CK_THREAD_COUNT)
+                input.getConfiguration().getInt(CK_THREAD_COUNT),
+                this.localRegistry
         );
 
         subscriber.start();
