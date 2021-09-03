@@ -113,6 +113,7 @@ public class S3Subscriber extends Thread {
 
                             String message;
                             while ((message = reader.readLine()) != null) {
+                                LOG.debug("S3 Event message : {}", message);
                                 S3Record s3Record = new S3Record();
                                 s3Record.s3Bucket = n.getS3Bucket();
                                 s3Record.s3ObjectKey = n.getS3ObjectKey();
