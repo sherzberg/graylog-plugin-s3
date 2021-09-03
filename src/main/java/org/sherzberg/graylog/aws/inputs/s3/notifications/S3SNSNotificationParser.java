@@ -22,24 +22,33 @@ public class S3SNSNotificationParser {
 
     public List<S3SNSNotification> parse(Message message) {
         List<S3SNSNotification> notifications = Lists.newArrayList();
+        String messageBody = message.getBody();
 
         try {
-            SQSMessage envelope = om.readValue(message.getBody(), SQSMessage.class);
+            SQSMessage envelope = om.readValue(messageBody, SQSMessage.class);
 
             if (envelope.message == null) {
                 return Collections.emptyList();
             }
 
             S3EventNotification s3EventNotification = S3EventNotification.parseJson(envelope.message);
+            List<S3EventNotification.S3EventNotificationRecord> records = s3EventNotification.getRecords();
 
-            notifications.addAll(s3EventNotification.getRecords().stream().map(record -> new S3SNSNotification(
+            if (records == null) {
+                if (!envelope.message.contains("s3:TestEvent")){
+                    LOG.warn("Consumed SNS notification does not have any record: {}", envelope.message);
+                }
+                return Collections.emptyList();
+            }
+
+            notifications.addAll(records.stream().map(record -> new S3SNSNotification(
                     message.getReceiptHandle(),
                     record.getS3().getBucket().getName(),
                     record.getS3().getObject().getUrlDecodedKey()
             )).collect(Collectors.toList()));
         } catch (Exception e) {
-            LOG.error("Could not parse SNS notification: " + message.getBody(), e);
-            throw new RuntimeException("Could not parse SNS notification: " + message.getBody(), e);
+            LOG.error("Could not parse SNS notification: " + messageBody, e);
+            throw new RuntimeException("Could not parse SNS notification: " + messageBody, e);
         }
 
         return notifications;

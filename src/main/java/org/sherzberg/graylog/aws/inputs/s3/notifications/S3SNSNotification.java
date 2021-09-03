@@ -23,4 +23,12 @@ public class S3SNSNotification {
         return s3ObjectKey;
     }
 
+    @Override
+    public String toString() {
+        return "S3SNSNotification{" +
+                "receiptHandle='" + receiptHandle + '\'' +
+                ", s3Bucket='" + s3Bucket + '\'' +
+                ", s3ObjectKey='" + s3ObjectKey + '\'' +
+                '}';
+    }
 }
