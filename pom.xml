@@ -51,7 +51,7 @@
 
         <graylog.version>2.4.6</graylog.version>
         <graylog.plugin-dir>/usr/share/graylog-server/plugin</graylog.plugin-dir>
-        <aws-java-sdk.version>1.11.177</aws-java-sdk.version>
+        <aws-java-sdk.version>1.12.261</aws-java-sdk.version>
     </properties>
 
     <distributionManagement>
